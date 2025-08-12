@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload de Planilha</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; }
+        .message { padding: 10px; margin-bottom: 20px; border-radius: 5px; }
+        .success { background-color: #d4edda; color: #155724; }
+    </style>
+</head>
+<body>
+    <h1>Importar Veículos da Planilha</h1>
+
+    {% if success %}
+        <div class="message success">{{ success }}</div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <p>
+            <label for="excel_file">Selecione a planilha (.xlsx):</label><br>
+            <input type="file" name="excel_file" id="excel_file" accept=".xlsx" required>
+        </p>
+        <button type="submit">Enviar</button>
+    </form>
+
+    <hr>
+    <a href="/admin/">Voltar para a Área Administrativa</a>
+</body>
+</html>

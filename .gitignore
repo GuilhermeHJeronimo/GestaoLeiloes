@@ -1,0 +1,18 @@
+# Arquivo .gitignore para projetos Django
+
+# Ambiente Virtual
+venv/
+/venv/
+
+# Banco de Dados
+*.sqlite3
+db.sqlite3
+
+# Arquivos de Cache do Python
+__pycache__/
+*.pyc
+
+# Arquivos de Editor e Sistema Operacional
+.vscode/
+.idea/
+.DS_Store

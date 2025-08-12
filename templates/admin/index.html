@@ -1,0 +1,33 @@
+{% extends "admin/index.html" %}
+{% load i18n %}
+
+{% block sidebar %}
+  {# Esta linha garante que o conteúdo original da barra lateral seja mantido #}
+  {{ block.super }}
+
+  {# Nosso novo painel de ações customizadas #}
+  <div class="module">
+    <h2>{% translate 'Ações Rápidas' %}</h2>
+    <ul class="actionlist">
+      
+      <li class="addlink">
+        <a href="{% url 'registrar_visita' %}">
+          {% translate 'Registrar Visita de Cliente' %}
+        </a>
+      </li>
+
+      <li class="addlink">
+        <a href="{% url 'selecionar_leilao_arremate' %}">
+          {% translate 'Registrar Arremates de um Leilão' %}
+        </a>
+      </li>
+
+      <li class="changelink">
+        <a href="{% url 'upload_excel' %}">
+          {% translate 'Importar Planilha de Veículos' %}
+        </a>
+      </li>
+
+    </ul>
+  </div>
+{% endblock %}

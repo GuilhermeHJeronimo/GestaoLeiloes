@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Veículos para Arremate</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; background-color: #f4f4f4; color: #333; }
+        .container { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 1200px; margin: auto; }
+        h1 { color: #0056b3; }
+        .sub-header { color: #6c757d; margin-top: -10px; margin-bottom: 30px;}
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; }
+        th { background-color: #e9ecef; }
+        tr:hover { background-color: #f8f9fa; }
+        .btn { display: inline-block; padding: 8px 15px; font-size: 14px; text-align: center; text-decoration: none; color: #fff; background-color: #28a745; border: none; border-radius: 4px; cursor: pointer; transition: background-color 0.2s; }
+        .btn:hover { background-color: #218838; }
+        .nav-link { color: #0056b3; text-decoration: none; display: inline-block; margin-top: 20px;}
+        .nav-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Veículos Disponíveis</h1>
+        <h2 class="sub-header">Leilão: {{ leilao.nome_evento }}</h2>
+        <table>
+            <thead>
+                <tr><th>Lote</th><th>Veículo</th><th>Placa</th><th>Comitente</th><th>Lance Inicial</th><th>Ação</th></tr>
+            </thead>
+            <tbody>
+                {% for veiculo in veiculos %}
+                <tr>
+                    <td>{{ veiculo.lote }}</td>
+                    <td>{{ veiculo.min_veiculo }}</td>
+                    <td>{{ veiculo.placa }}</td>
+                    <td>{{ veiculo.comitente.nome }}</td>
+                    <td>R$ {{ veiculo.lance_inicial }}</td>
+                    <td>
+                        <a href="{% url 'registrar_arremate_final' leilao_id=leilao.id placa_veiculo=veiculo.placa %}" class="btn">Registrar Arremate</a>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="6">Nenhum veículo disponível para este leilão no momento.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <br>
+        <a href="{% url 'selecionar_leilao_arremate' %}" class="nav-link">&larr; Voltar para a seleção de leilões</a>
+    </div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Registrar Visita</title>
+    <style>
+        body { font-family: sans-serif; margin: 40px; max-width: 600px; background-color: #f4f4f4; color: #333; }
+        .container { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #0056b3; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 5px; font-weight: bold; }
+        select, input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 4px;
+            border: 1px solid #ccc;
+            box-sizing: border-box;
+        }
+        button {
+            padding: 12px 25px;
+            font-size: 16px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        button:hover { background-color: #218838; }
+        hr { margin-top: 30px; margin-bottom: 30px; border: 0; border-top: 1px solid #eee; }
+        .nav-link { color: #0056b3; text-decoration: none; }
+        .nav-link:hover { text-decoration: underline; }
+        .message { padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid transparent; }
+        .success { background-color: #d4edda; color: #155724; border-color: #c3e6cb; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Check-in de Visita ao Leilão</h1>
+
+        {% if success_message %}
+            <div class="message success">{{ success_message }}</div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label for="leilao">Selecione o Leilão:</label>
+                <select name="leilao" id="leilao" required>
+                    <option value="">--- Escolha um leilão ---</option>
+                    {% for leilao in leiloes %}
+                        <option value="{{ leilao.id }}">{{ leilao.nome_evento }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="cpf">CPF do Cliente:</label>
+                <input type="text" name="cpf" id="cpf" placeholder="Digite apenas os números" required>
+            </div>
+
+            <div class="form-group">
+                <label for="nome">Nome do Cliente:</label>
+                <input type="text" name="nome" id="nome" placeholder="Digite o nome completo" required>
+            </div>
+
+            <button type="submit">Registrar Visita</button>
+        </form>
+
+        <hr>
+        <a href="/admin/" class="nav-link">Voltar para a Área Administrativa</a>
+    </div>
+</body>
+</html>

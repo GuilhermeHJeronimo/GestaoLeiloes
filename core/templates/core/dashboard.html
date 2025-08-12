@@ -1,0 +1,102 @@
+{% extends 'core/base.html' %}
+{% block title %}Dashboard{% endblock %}
+
+{% block content %}
+<style>
+    .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 30px; }
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; margin-bottom: 30px; }
+    .card { background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .card h3 { margin-top: 0; color: #6c757d; }
+    .card .value { font-size: 2.5rem; font-weight: bold; color: #0056b3; }
+    .table-card { background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .table-card-header { display: flex; justify-content: space-between; align-items: center; }
+    .table-card-header h3 { margin: 0; }
+    .table-card-header a { text-decoration: none; background-color: #007bff; color: white; padding: 5px 10px; border-radius: 4px; font-size: 14px; transition: background-color 0.2s; }
+    .table-card-header a:hover { background-color: #0056b3; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; }
+    th { background-color: #e9ecef; }
+    tr:hover { background-color: #f8f9fa; }
+</style>
+
+<div class="header">
+    <h1>Dashboard - Visão Geral</h1>
+    <p>Bem-vindo(a), {{ user.get_username }}!</p>
+</div>
+
+<div class="kpi-grid">
+    <div class="card">
+        <h3>Veículos Disponíveis</h3>
+        <p class="value">{{ total_veiculos_disponiveis | default:"0" }}</p>
+    </div>
+    <div class="card">
+        <h3>Visitas Hoje</h3>
+        <p class="value">{{ visitas_hoje | default:"0" }}</p>
+    </div>
+    <div class="card">
+        <h3>Total Arrematado Hoje</h3>
+        <p class="value">R$ {{ total_arrematado_hoje | default:"0,00" }}</p>
+    </div>
+</div>
+
+<div class="table-card">
+    <h3>Top 5 Arrematantes (por valor)</h3>
+    <table>
+        <thead><tr><th>Nome do Cliente</th><th>CPF</th><th>Total Gasto</th></tr></thead>
+        <tbody>
+            {% for arrematante in top_arrematantes %}
+            <tr>
+                <td>{{ arrematante.nome_cliente }}</td>
+                <td>{{ arrematante.cpf_cliente }}</td>
+                <td>R$ {{ arrematante.total_gasto_formatado }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3">Nenhum arremate registrado ainda.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
+    <div class="table-card">
+        <div class="table-card-header">
+            <h3>Veículos Disponíveis</h3>
+            <a href="{% url 'lista_completa_veiculos' %}?status=DISPONIVEL">Ver Todos</a>
+        </div>
+        <table>
+            <thead><tr><th>Lote</th><th>Veículo</th><th>Placa</th></tr></thead>
+            <tbody>
+                {% for veiculo in veiculos_disponiveis|slice:":10" %}
+                <tr>
+                    <td>{{ veiculo.lote }}</td>
+                    <td>{{ veiculo.min_veiculo }}</td>
+                    <td>{{ veiculo.placa }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3">Nenhum veículo disponível.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div class="table-card">
+        <div class="table-card-header">
+            <h3>Veículos Arrematados Hoje</h3>
+            <a href="{% url 'lista_completa_veiculos' %}?status=ARREMATADO">Ver Todos</a>
+        </div>
+        <table>
+            <thead><tr><th>Lote</th><th>Veículo</th><th>Placa</th></tr></thead>
+            <tbody>
+                {% for veiculo in veiculos_arrematados_hoje|slice:":10" %}
+                <tr>
+                    <td>{{ veiculo.lote }}</td>
+                    <td>{{ veiculo.min_veiculo }}</td>
+                    <td>{{ veiculo.placa }}</td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="3">Nenhum veículo arrematado hoje.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
