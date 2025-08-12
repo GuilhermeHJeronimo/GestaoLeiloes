@@ -6,9 +6,9 @@
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; margin: 0; background-color: #f0f2f5; color: #333; }
         .sidebar { position: fixed; left: 0; top: 0; bottom: 0; width: 220px; background-color: #343a40; color: white; padding-top: 20px; display: flex; flex-direction: column; }
-        .sidebar h2 { text-align: center; color: #fff; }
+        .sidebar h2 { text-align: center; color: #fff; padding-bottom: 10px; margin-top: 0; border-bottom: 1px solid #495057;}
         .sidebar ul { list-style: none; padding: 0; flex-grow: 1; }
-        .sidebar ul li a { display: block; padding: 15px 20px; color: #adb5bd; text-decoration: none; transition: background-color 0.2s, color 0.2s; }
+        .sidebar ul li a { display: block; padding: 15px 20px; color: #adb5bd; text-decoration: none; transition: background-color 0.2s, color 0.2s; font-size: 15px; }
         .sidebar ul li a:hover, .sidebar ul li.active a { background-color: #495057; color: #fff; }
         .sidebar .logout-link a { border-top: 1px solid #495057; }
         .main-content { margin-left: 220px; padding: 30px; }
@@ -18,17 +18,38 @@
     <div class="sidebar">
         <h2>Leilões</h2>
         <ul>
-            <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            {% if user.is_superuser %}
+                <li><a href="{% url 'dashboard' %}">Dashboard</a></li>
+            {% else %}
+                <li><a href="{% url 'dashboard_recepcao' %}">Painel da Recepção</a></li>
+            {% endif %}
+
             <li><a href="{% url 'selecionar_leilao_arremate' %}">Registrar Arremates</a></li>
             <li><a href="{% url 'registrar_visita' %}">Registrar Visita</a></li>
-            <li><a href="{% url 'upload_excel' %}">Importar Planilha</a></li>
-            <li><a href="/admin/">Painel Admin</a></li>
+            
+            {% if user.is_superuser %}
+                <li><a href="{% url 'criar_leilao' %}">Cadastrar Novo Leilão</a></li>
+                <li><a href="{% url 'upload_excel' %}">Importar Planilha</a></li>
+                <li><a href="/admin/">Painel Admin Completo</a></li>
+            {% endif %}
         </ul>
+        
         <ul class="logout-link">
              <li><a href="{% url 'logout' %}">Sair / Logout</a></li>
         </ul>
     </div>
+
     <div class="main-content">
+        {% if messages %}
+            <div class="messages">
+                {% for message in messages %}
+                    <div class="message {{ message.tags }}" style="padding: 15px; margin-bottom: 20px; border-radius: 5px; border: 1px solid transparent; background-color: #d4edda; color: #155724; border-color: #c3e6cb;">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
         {% block content %}
         {% endblock %}
     </div>

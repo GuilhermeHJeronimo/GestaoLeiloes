@@ -1,0 +1,44 @@
+{% extends 'core/base.html' %}
+{% block title %}Cadastrar Novo Leilão{% endblock %}
+
+{% block content %}
+<style>
+    .card { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 700px; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { margin-bottom: 20px; }
+    .full-width { grid-column: 1 / -1; }
+    label { display: block; margin-bottom: 5px; font-weight: bold; }
+    input { width: 100%; padding: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+    button { padding: 12px 25px; font-size: 16px; background-color: #007bff; color: white; border: none; border-radius: 4px; cursor: pointer; }
+</style>
+
+<div class="card">
+    <h1>Cadastrar Novo Leilão</h1>
+    <form method="post">
+        {% csrf_token %}
+        <div class="form-group full-width">
+            <label for="nome_evento">Nome do Evento (Ex: Leilão de Agosto)</label>
+            <input type="text" name="nome_evento" id="nome_evento" required>
+        </div>
+        <div class="form-grid">
+            <div class="form-group">
+                <label for="data_principal">Data Leilão Principal</label>
+                <input type="date" name="data_principal" id="data_principal" required>
+            </div>
+            <div class="form-group">
+                <label for="id_principal">ID Leilão Principal</label>
+                <input type="text" name="id_principal" id="id_principal" required>
+            </div>
+            <div class="form-group">
+                <label for="data_repasse">Data Leilão Repasse</label>
+                <input type="date" name="data_repasse" id="data_repasse" required>
+            </div>
+            <div class="form-group">
+                <label for="id_repasse">ID Leilão Repasse</label>
+                <input type="text" name="id_repasse" id="id_repasse" required>
+            </div>
+        </div>
+        <button type="submit">Salvar Leilão</button>
+    </form>
+</div>
+{% endblock %}
