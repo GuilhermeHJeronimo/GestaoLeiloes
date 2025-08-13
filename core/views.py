@@ -8,6 +8,7 @@ from django.contrib.auth import logout
 from django.core.paginator import Paginator
 from django.http import HttpResponse, JsonResponse
 from django.conf import settings
+from django.core.cache import cache
 from .models import Comitente, Veiculo, Leilao, Visita, Arremate
 from .resources import VeiculoResource
 import math
@@ -15,7 +16,6 @@ from datetime import timedelta
 import requests
 
 # --- FUNÇÕES AUXILIARES E DE PERMISSÃO ---
-
 def _clean_decimal(value):
     if pd.isna(value) or not value: return 0.00
     cleaned_value = str(value).replace('R$', '').strip().replace('.', '').replace(',', '.')
@@ -34,52 +34,43 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
-# --- VIEW DE API (Versão Final de Depuração) ---
+# --- VIEW DE API ---
 @login_required
 def buscar_cliente_api(request):
-    cpf_limpo = request.GET.get('cpf')
-    if not cpf_limpo:
+    cpf = request.GET.get('cpf')
+    if not cpf:
         return JsonResponse({'error': 'CPF não fornecido'}, status=400)
 
-    # Etapa 1: Autenticação (não muda)
+    token = cache.get('api_auth_token')
+    if not token:
+        base_url = settings.API_CLIENTES_BASE_URL.strip('/')
+        auth_url = f"{base_url}/integration/api/Authenticate"
+        auth_data = { "Client_ID": settings.API_CLIENTES_ID, "Client_Secret": settings.API_CLIENTES_SECRET }
+        try:
+            auth_response = requests.post(auth_url, json=auth_data, timeout=15)
+            auth_response.raise_for_status()
+            token = auth_response.json().get('token') or auth_response.json().get('access_token') or auth_response.json().get('accessToken')
+            if not token:
+                return JsonResponse({'error': 'Token de autenticação não encontrado na resposta.'}, status=500)
+            cache.set('api_auth_token', token, 1800)
+        except requests.exceptions.RequestException:
+            return JsonResponse({'error': 'Falha na autenticação com a API externa.'}, status=500)
+
     base_url = settings.API_CLIENTES_BASE_URL.strip('/')
-    auth_url = f"{base_url}/integration/api/Authenticate"
-    auth_data = { "Client_ID": settings.API_CLIENTES_ID, "Client_Secret": settings.API_CLIENTES_SECRET }
-    try:
-        auth_response = requests.post(auth_url, json=auth_data, timeout=10)
-        auth_response.raise_for_status()
-        token = auth_response.json().get('token') or auth_response.json().get('access_token') or auth_response.json().get('accessToken')
-        if not token:
-            return JsonResponse({'error': 'Token de autenticação não encontrado.'}, status=500)
-    except requests.exceptions.RequestException:
-        return JsonResponse({'error': 'Falha na autenticação com a API externa.'}, status=500)
-
-    # Etapa 2: Busca do Cliente (com DUPLA TENTATIVA)
     headers = {'Authorization': f'Bearer {token}'}
+    cpf_limpo = cpf.replace('.', '').replace('-', '')
     
-    # Tentativa 1: CPF Apenas com números
     try:
-        cliente_url = f"{base_url}/integration/api/GetCliente/{cpf_limpo}"
-        cliente_response = requests.get(cliente_url, headers=headers, timeout=10)
-        cliente_response.raise_for_status()
-        data = cliente_response.json()
-        item_data = data.get("Item")
+        # Tentativa 1: CPF Apenas com números
+        cliente_url_limpo = f"{base_url}/integration/api/GetCliente/{cpf_limpo}"
+        cliente_response = requests.get(cliente_url_limpo, headers=headers, timeout=10)
         
-        # Se encontrou na primeira tentativa, retorna o nome e encerra
-        if item_data and item_data.get("Nome"):
-            return JsonResponse({'nome': item_data.get("Nome")})
+        # Tentativa 2: CPF Formatado (se a primeira falhou ou retornou item nulo)
+        if cliente_response.status_code != 200 or not cliente_response.json().get("Item"):
+            cpf_formatado = f"{cpf_limpo[:3]}.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-{cpf_limpo[9:]}"
+            cliente_url_formatado = f"{base_url}/integration/api/GetCliente/{cpf_formatado}"
+            cliente_response = requests.get(cliente_url_formatado, headers=headers, timeout=10)
 
-    except requests.exceptions.RequestException:
-        # Se der erro na primeira tentativa, apenas ignora e passa para a próxima
-        pass
-
-    # Tentativa 2: CPF Formatado (se a primeira falhou ou retornou item nulo)
-    try:
-        # Formata o CPF para XXX.XXX.XXX-XX
-        cpf_formatado = f"{cpf_limpo[:3]}.{cpf_limpo[3:6]}.{cpf_limpo[6:9]}-{cpf_limpo[9:]}"
-        cliente_url_formatado = f"{base_url}/integration/api/GetCliente/{cpf_formatado}"
-        
-        cliente_response = requests.get(cliente_url_formatado, headers=headers, timeout=10)
         cliente_response.raise_for_status()
         data = cliente_response.json()
         
@@ -87,13 +78,11 @@ def buscar_cliente_api(request):
         if item_data and item_data.get("Nome"):
             return JsonResponse({'nome': item_data.get("Nome")})
         else:
-            # Se mesmo formatado não encontrou, retorna o erro final
             return JsonResponse({'error': 'Cliente não encontrado.'}, status=404)
-
     except requests.exceptions.RequestException:
-        return JsonResponse({'error': 'Falha ao buscar cliente na API externa (ambas as tentativas).'}, status=500)
+        cache.delete('api_auth_token')
+        return JsonResponse({'error': 'Falha ao buscar cliente. Token pode ter expirado. Tente novamente.'}, status=500)
 
-# --- VIEWS DE ADMIN (Apenas Superusuários) ---
 @login_required
 @user_passes_test(is_admin)
 def dashboard(request):
@@ -134,7 +123,7 @@ def dashboard(request):
 def upload_excel(request):
     contexto = {}
     if request.method == 'POST':
-        excel_file = request.FILES.get('excel_file');
+        excel_file = request.FILES.get('excel_file')
         if not excel_file:
             contexto['error'] = 'Nenhum arquivo foi enviado.'
             return render(request, 'core/upload_excel.html', contexto)
@@ -185,7 +174,7 @@ def registrar_visita(request):
         leilao_id = request.POST.get('leilao'); cpf_cliente = request.POST.get('cpf'); nome_cliente = request.POST.get('nome')
         if leilao_id and cpf_cliente and nome_cliente:
             leilao_selecionado = Leilao.objects.get(id=leilao_id)
-            Visita.objects.create(leilao=leilao_selecionado, cpf_cliente=cpf_cliente, nome_cliente=nome_cliente)
+            Visita.objects.create(leilao=leilao_selecionado, cpf_cliente=cpf_cliente.replace('.', '').replace('-', ''), nome_cliente=nome_cliente)
             messages.success(request, f"Visita de {nome_cliente} registrada com sucesso!")
         else:
             messages.error(request, "Todos os campos são obrigatórios.")
@@ -213,7 +202,7 @@ def registrar_arremate_final(request, leilao_id, placa_veiculo):
     if request.method == 'POST':
         cpf_cliente = request.POST.get('cpf'); nome_cliente = request.POST.get('nome')
         valor_arremate = _clean_decimal(request.POST.get('valor_arremate'))
-        Arremate.objects.create(veiculo=veiculo, leilao=leilao, cpf_cliente=cpf_cliente, nome_cliente=nome_cliente, valor_arremate=valor_arremate)
+        Arremate.objects.create(veiculo=veiculo, leilao=leilao, cpf_cliente=cpf_cliente.replace('.', '').replace('-', ''), nome_cliente=nome_cliente, valor_arremate=valor_arremate)
         veiculo.status = 'ARREMATADO'; veiculo.save()
         messages.success(request, f"Arremate do veículo {veiculo.placa} registrado com sucesso!")
         return redirect('lista_veiculos_leilao', leilao_id=leilao.id)
