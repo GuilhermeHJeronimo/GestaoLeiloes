@@ -1,0 +1,42 @@
+{% extends 'core/base.html' %}
+{% block title %}Visitantes do Leilão{% endblock %}
+
+{% block content %}
+<style>
+    .table-card { background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .sub-header { color: #6c757d; margin-top: -10px; margin-bottom: 30px;}
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; }
+    th { background-color: #e9ecef; }
+    .nav-link { color: #0056b3; text-decoration: none; display: inline-block; margin-top: 20px;}
+</style>
+
+<div class="table-card">
+    <h1>Lista de Visitantes</h1>
+    <h2 class="sub-header">Leilão: {{ leilao.nome_evento }}</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Nome do Cliente</th>
+                <th>CPF</th>
+                <th>Data e Hora da Visita</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for visita in visitas %}
+            <tr>
+                <td>{{ visita.nome_cliente }}</td>
+                <td>{{ visita.cpf_cliente }}</td>
+                <td>{{ visita.data_visita|date:"d/m/Y H:i" }}</td>
+            </tr>
+            {% empty %}
+            <tr>
+                <td colspan="3">Nenhuma visita registrada para este leilão.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <br>
+    <a href="{% url 'dashboard' %}" class="nav-link">&larr; Voltar para o Dashboard</a>
+</div>
+{% endblock %}

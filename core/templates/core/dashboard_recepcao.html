@@ -36,21 +36,19 @@
 </div>
 
 <div class="table-card">
-    <h3>Visitantes de Hoje</h3>
+    <h3>Histórico de Visitas por Leilão</h3>
     <table>
         <thead>
-            <tr><th>Nome do Cliente</th><th>CPF</th><th>Leilão</th><th>Hora da Visita</th></tr>
+            <tr><th>Nome do Leilão</th><th>Total de Visitantes</th></tr>
         </thead>
         <tbody>
-            {% for visita in visitantes_hoje %}
+            {% for leilao in leiloes_com_visitas_total %}
             <tr>
-                <td>{{ visita.nome_cliente }}</td>
-                <td>{{ visita.cpf_cliente }}</td>
-                <td>{{ visita.leilao.nome_evento }}</td>
-                <td>{{ visita.data_visita|time:"H:i" }}</td>
+                <td><a href="{% url 'lista_visitantes_leilao' leilao.id %}">{{ leilao.nome_evento }}</a></td>
+                <td>{{ leilao.num_visitas }}</td>
             </tr>
             {% empty %}
-            <tr><td colspan="4">Nenhuma visita registrada hoje.</td></tr>
+            <tr><td colspan="2">Nenhuma visita registrada em nenhum leilão.</td></tr>
             {% endfor %}
         </tbody>
     </table>

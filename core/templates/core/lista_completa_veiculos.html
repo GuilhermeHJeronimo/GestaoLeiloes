@@ -3,41 +3,82 @@
 
 {% block content %}
 <style>
-    .table-card { background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
+    .card { background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); }
     table { width: 100%; border-collapse: collapse; margin-top: 15px; }
     th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; }
     th { background-color: #e9ecef; }
-    tr:hover { background-color: #f8f9fa; }
+    .pagination { margin-top: 20px; text-align: center; }
+    .pagination a, .pagination .current { color: #007bff; text-decoration: none; padding: 8px 16px; margin: 0 4px; border: 1px solid #dee2e6; border-radius: 4px; }
+    .pagination .current { background-color: #007bff; color: white; border-color: #007bff; }
+    .filter-form { background-color: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px; display: flex; flex-wrap: wrap; align-items: flex-end; gap: 20px; }
+    .filter-group { flex-grow: 1; min-width: 200px; }
+    .filter-group label { font-weight: bold; display: block; margin-bottom: 5px; }
+    .filter-group select { width: 100%; padding: 8px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; }
+    .btn { padding: 9px 15px; font-size: 16px; color: white; border: none; border-radius: 4px; cursor: pointer; text-decoration: none; display: inline-block; }
+    .btn-primary { background-color: #007bff; }
+    .btn-success { background-color: #28a745; }
 </style>
 
-<div class="table-card">
+<div class="card">
     <h1>{{ titulo_pagina }}</h1>
+    <form method="get" class="filter-form">
+        <div class="filter-group">
+            <label for="status">Filtrar por Status:</label>
+            <select name="status" id="status">
+                <option value="">Todos os Status</option>
+                {% for key, value in todos_os_status %}
+                    <option value="{{ key }}" {% if key == status_filtro %}selected{% endif %}>{{ value }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="filter-group">
+            <label for="comitente">Filtrar por Comitente:</label>
+            <select name="comitente" id="comitente">
+                <option value="">Todos os Comitentes</option>
+                {% for comitente in todos_os_comitentes %}
+                    <option value="{{ comitente.id }}" {% if comitente.id|stringformat:"s" == comitente_filtro_id %}selected{% endif %}>{{ comitente.nome }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+        <a href="{% url 'exportar_veiculos' %}?status={{ status_filtro|default:'' }}&comitente={{ comitente_filtro_id|default:'' }}" class="btn btn-success">
+            Exportar para Excel
+        </a>
+    </form>
     <table>
         <thead>
-            <tr>
-                <th>Lote</th>
-                <th>Veículo</th>
-                <th>Placa</th>
-                <th>Comitente</th>
-                <th>Status</th>
-            </tr>
+            <tr><th>Lote</th><th>Veículo</th><th>Placa</th><th>Comitente</th><th>Status</th></tr>
         </thead>
         <tbody>
-            {% for veiculo in veiculos %}
+            {% for veiculo in page_obj %}
             <tr>
                 <td>{{ veiculo.lote }}</td>
                 <td>{{ veiculo.min_veiculo }}</td>
                 <td>{{ veiculo.placa }}</td>
                 <td>{{ veiculo.comitente.nome }}</td>
-                {# Usamos get_status_display para mostrar o nome legível do status, ex: "Disponível" #}
                 <td>{{ veiculo.get_status_display }}</td>
             </tr>
             {% empty %}
-            <tr>
-                <td colspan="5">Nenhum veículo encontrado com este critério.</td>
-            </tr>
+            <tr><td colspan="5">Nenhum veículo encontrado com este critério.</td></tr>
             {% endfor %}
         </tbody>
     </table>
+    <div class="pagination">
+        {% if page_obj.has_other_pages %}
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+                <a href="?page=1{% if status_filtro %}&status={{ status_filtro }}{% endif %}{% if comitente_filtro_id %}&comitente={{ comitente_filtro_id }}{% endif %}">&laquo; primeira</a>
+                <a href="?page={{ page_obj.previous_page_number }}{% if status_filtro %}&status={{ status_filtro }}{% endif %}{% if comitente_filtro_id %}&comitente={{ comitente_filtro_id }}{% endif %}">anterior</a>
+            {% endif %}
+            <span class="current">
+                Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}.
+            </span>
+            {% if page_obj.has_next %}
+                <a href="?page={{ page_obj.next_page_number }}{% if status_filtro %}&status={{ status_filtro }}{% endif %}{% if comitente_filtro_id %}&comitente={{ comitente_filtro_id }}{% endif %}">próxima</a>
+                <a href="?page={{ page_obj.paginator.num_pages }}{% if status_filtro %}&status={{ status_filtro }}{% endif %}{% if comitente_filtro_id %}&comitente={{ comitente_filtro_id }}{% endif %}">última &raquo;</a>
+            {% endif %}
+        </span>
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

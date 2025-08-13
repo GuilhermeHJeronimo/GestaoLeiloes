@@ -5,8 +5,11 @@ SECRET_KEY = 'django-insecure-YOUR-SECRET-KEY-HERE'
 DEBUG = True
 ALLOWED_HOSTS = []
 
+# Arquivo: config/settings.py
+
 INSTALLED_APPS = [
     'core.apps.CoreConfig',
+    'import_export',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',

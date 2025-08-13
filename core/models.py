@@ -7,13 +7,12 @@ class Comitente(models.Model):
     def __str__(self):
         return self.nome
 
-# Modelo para o Veículo, com a estrutura simplificada
 class Veiculo(models.Model):
     STATUS_CHOICES = [
         ('DISPONIVEL', 'Disponível'),
         ('ARREMATADO', 'Arrematado'),
-        ('PAGO', 'Pagamento Confirmado'),
-        ('RETIRADO', 'Retirado'),
+        ('PAGAMENTO_CONFIRMADO', 'Pagamento Confirmado'),
+        ('RETIRADO', 'Retirado'),                  
         ('RETORNADO', 'Retornado com Multa'),
     ]
 
@@ -23,7 +22,7 @@ class Veiculo(models.Model):
     lance_inicial = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     proporcao_fipe = models.CharField(max_length=20, verbose_name="Valor FIPE", blank=True)
     placa = models.CharField(max_length=10, unique=True, primary_key=True)
-    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='DISPONIVEL')
+    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='DISPONIVEL') # Aumentamos o max_length
 
     def __str__(self):
         return f"Lote {self.lote}: {self.min_veiculo} - Placa: {self.placa}"

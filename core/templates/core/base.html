@@ -24,8 +24,9 @@
                 <li><a href="{% url 'dashboard_recepcao' %}">Painel da Recepção</a></li>
             {% endif %}
 
-            <li><a href="{% url 'selecionar_leilao_arremate' %}">Registrar Arremates</a></li>
             <li><a href="{% url 'registrar_visita' %}">Registrar Visita</a></li>
+            <li><a href="{% url 'selecionar_leilao_arremate' %}">Registrar Arremates</a></li>
+            <li><a href="{% url 'gerenciar_lotes' %}">Gerenciar Lotes Pós-Venda</a></li>
             
             {% if user.is_superuser %}
                 <li><a href="{% url 'criar_leilao' %}">Cadastrar Novo Leilão</a></li>

@@ -12,12 +12,17 @@ urlpatterns = [
     path('', views.dashboard, name='dashboard'),
     path('recepcao/', views.dashboard_recepcao, name='dashboard_recepcao'),
     
-    # Ferramentas
+    # Ferramentas e Listagens
     path('leilao/novo/', views.criar_leilao, name='criar_leilao'),
     path('veiculos/', views.lista_completa_veiculos, name='lista_completa_veiculos'),
     path('upload/', views.upload_excel, name='upload_excel'),
     path('registrar-visita/', views.registrar_visita, name='registrar_visita'),
+    path('leilao/<int:leilao_id>/visitantes/', views.lista_visitantes_leilao, name='lista_visitantes_leilao'),
+    path('gerenciar-lotes/', views.gerenciar_lotes, name='gerenciar_lotes'),
     
+    # Exportação
+    path('veiculos/exportar/', views.exportar_veiculos_xls, name='exportar_veiculos'),
+
     # Fluxo de Arremate
     path('arremates/', views.selecionar_leilao_arremate, name='selecionar_leilao_arremate'),
     path('leilao/<int:leilao_id>/', views.lista_veiculos_leilao, name='lista_veiculos_leilao'),

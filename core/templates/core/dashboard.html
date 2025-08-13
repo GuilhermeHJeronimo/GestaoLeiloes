@@ -1,6 +1,5 @@
 {% extends 'core/base.html' %}
 {% block title %}Dashboard{% endblock %}
-
 {% block content %}
 <style>
     .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
@@ -16,28 +15,21 @@
     th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; }
     th { background-color: #e9ecef; }
     .filter-bar { background-color: white; padding: 10px 20px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 30px; }
-    .filter-bar a { text-decoration: none; color: #495057; margin-right: 15px; font-size: 16px; font-weight: 500; padding: 8px 15px; border-radius: 20px; transition: background-color 0.2s, color 0.2s; }
+    .filter-bar a { text-decoration: none; color: #495057; margin-right: 15px; font-size: 16px; font-weight: 500; padding: 8px 15px; border-radius: 20px; }
     .filter-bar a.active, .filter-bar a:hover { background-color: #007bff; color: white; }
 </style>
-
-<div class="header">
-    <h1>Dashboard - Visão Geral</h1>
-    <p>Bem-vindo(a), {{ user.get_username }}!</p>
-</div>
-
+<div class="header"><h1>Dashboard - Visão Geral</h1><p>Bem-vindo(a), {{ user.get_username }}!</p></div>
 <div class="filter-bar">
     <a href="{% url 'dashboard' %}?periodo=hoje" class="{% if periodo_selecionado == 'hoje' %}active{% endif %}">Hoje</a>
     <a href="{% url 'dashboard' %}?periodo=semana" class="{% if periodo_selecionado == 'semana' %}active{% endif %}">Últimos 7 dias</a>
     <a href="{% url 'dashboard' %}?periodo=mes" class="{% if periodo_selecionado == 'mes' %}active{% endif %}">Este Mês</a>
     <a href="{% url 'dashboard' %}?periodo=total" class="{% if periodo_selecionado == 'total' %}active{% endif %}">Desde o Início</a>
 </div>
-
 <div class="kpi-grid">
     <div class="card"><h3>Veículos Disponíveis</h3><p class="value">{{ total_veiculos_disponiveis | default:"0" }}</p></div>
     <div class="card"><h3>Visitas {{ titulo_periodo }}</h3><p class="value">{{ visitas_periodo | default:"0" }}</p></div>
     <div class="card"><h3>Total Arrematado {{ titulo_periodo }}</h3><p class="value">R$ {{ total_arrematado_periodo | default:"0,00" }}</p></div>
 </div>
-
 <div class="table-card">
     <h3>Top 5 Arrematantes ({{ titulo_periodo }})</h3>
     <table>
@@ -51,7 +43,6 @@
         </tbody>
     </table>
 </div>
-
 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 30px;">
     <div class="table-card">
         <div class="table-card-header"><h3>Veículos Disponíveis</h3><a href="{% url 'lista_completa_veiculos' %}?status=DISPONIVEL">Ver Todos</a></div>
@@ -80,21 +71,15 @@
         </table>
     </div>
 </div>
-
 <div class="table-card" style="margin-top: 30px;">
-    <div class="table-card-header"><h3>Visitantes ({{ titulo_periodo }})</h3></div>
+    <div class="table-card-header"><h3>Visitas por Leilão (Histórico Total)</h3></div>
     <table>
-        <thead><tr><th>Nome do Cliente</th><th>CPF</th><th>Leilão</th><th>Data da Visita</th></tr></thead>
+        <thead><tr><th>Nome do Leilão</th><th>Total de Visitantes</th></tr></thead>
         <tbody>
-            {% for visita in visitas|slice:":10" %}
-            <tr>
-                <td>{{ visita.nome_cliente }}</td>
-                <td>{{ visita.cpf_cliente }}</td>
-                <td>{{ visita.leilao.nome_evento }}</td>
-                <td>{{ visita.data_visita|date:"d/m/Y H:i" }}</td>
-            </tr>
+            {% for leilao in leiloes_com_visitas_total|slice:":10" %}
+            <tr><td><a href="{% url 'lista_visitantes_leilao' leilao.id %}">{{ leilao.nome_evento }}</a></td><td>{{ leilao.num_visitas }}</td></tr>
             {% empty %}
-            <tr><td colspan="4">Nenhuma visita registrada no período.</td></tr>
+            <tr><td colspan="2">Nenhum leilão com visitas registradas.</td></tr>
             {% endfor %}
         </tbody>
     </table>

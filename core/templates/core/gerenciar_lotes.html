@@ -1,0 +1,69 @@
+{% extends 'core/base.html' %}
+{% block title %}Gerenciar Lotes Pós-Venda{% endblock %}
+
+{% block content %}
+<style>
+    .table-card { background-color: white; padding: 25px; border-radius: 8px; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 30px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    th, td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #dee2e6; }
+    th { background-color: #e9ecef; }
+    tr:hover { background-color: #f8f9fa; }
+    .btn { padding: 8px 15px; font-size: 14px; text-decoration: none; color: #fff; border: none; border-radius: 4px; cursor: pointer; }
+    .btn-success { background-color: #28a745; }
+    .btn-info { background-color: #17a2b8; }
+</style>
+
+<h1>Gerenciar Lotes Pós-Venda</h1>
+
+<div class="table-card">
+    <h3>Aguardando Pagamento (Arrematado)</h3>
+    <table>
+        <thead><tr><th>Lote</th><th>Veículo</th><th>Placa</th><th>Ação</th></tr></thead>
+        <tbody>
+            {% for veiculo in aguardando_pagamento %}
+            <tr>
+                <td>{{ veiculo.lote }}</td>
+                <td>{{ veiculo.min_veiculo }}</td>
+                <td>{{ veiculo.placa }}</td>
+                <td>
+                    <form method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="veiculo_placa" value="{{ veiculo.placa }}">
+                        <input type="hidden" name="novo_status" value="PAGAMENTO_CONFIRMADO">
+                        <button type="submit" class="btn btn-success">Confirmar Pagamento</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Nenhum veículo aguardando pagamento.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<div class="table-card">
+    <h3>Aguardando Retirada (Pagamento Confirmado)</h3>
+    <table>
+        <thead><tr><th>Lote</th><th>Veículo</th><th>Placa</th><th>Ação</th></tr></thead>
+        <tbody>
+            {% for veiculo in aguardando_retirada %}
+            <tr>
+                <td>{{ veiculo.lote }}</td>
+                <td>{{ veiculo.min_veiculo }}</td>
+                <td>{{ veiculo.placa }}</td>
+                <td>
+                    <form method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="veiculo_placa" value="{{ veiculo.placa }}">
+                        <input type="hidden" name="novo_status" value="RETIRADO">
+                        <button type="submit" class="btn btn-info">Confirmar Retirada</button>
+                    </form>
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="4">Nenhum veículo aguardando retirada.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}
