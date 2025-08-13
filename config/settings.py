@@ -1,11 +1,13 @@
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-YOUR-SECRET-KEY-HERE'
 DEBUG = True
 ALLOWED_HOSTS = []
-
-# Arquivo: config/settings.py
 
 INSTALLED_APPS = [
     'core.apps.CoreConfig',
@@ -64,3 +66,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'redirect_apos_login'
 LOGOUT_REDIRECT_URL = 'login'
+API_CLIENTES_BASE_URL = os.getenv("API_BASE_URL")
+API_CLIENTES_ID = os.getenv("API_CLIENT_ID")
+API_CLIENTES_SECRET = os.getenv("API_CLIENT_SECRET")

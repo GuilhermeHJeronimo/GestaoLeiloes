@@ -8,6 +8,9 @@ urlpatterns = [
     path('logout/', views.logout_view, name='logout'),
     path('redirect/', views.redirect_apos_login, name='redirect_apos_login'),
 
+    # Rota de API Interna
+    path('api/buscar-cliente/', views.buscar_cliente_api, name='buscar_cliente_api'),
+
     # Dashboards
     path('', views.dashboard, name='dashboard'),
     path('recepcao/', views.dashboard_recepcao, name='dashboard_recepcao'),
@@ -19,8 +22,6 @@ urlpatterns = [
     path('registrar-visita/', views.registrar_visita, name='registrar_visita'),
     path('leilao/<int:leilao_id>/visitantes/', views.lista_visitantes_leilao, name='lista_visitantes_leilao'),
     path('gerenciar-lotes/', views.gerenciar_lotes, name='gerenciar_lotes'),
-    
-    # Exportação
     path('veiculos/exportar/', views.exportar_veiculos_xls, name='exportar_veiculos'),
 
     # Fluxo de Arremate

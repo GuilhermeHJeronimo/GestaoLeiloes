@@ -8,7 +8,9 @@
     .form-group { margin-bottom: 20px; }
     label { display: block; margin-bottom: 5px; font-weight: bold; }
     input { width: 100%; padding: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
+    input[name="nome"] { background-color: #e9ecef; }
     button { padding: 12px 25px; font-size: 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;}
+    .spinner { display: none; }
 </style>
 
 <div class="card">
@@ -16,15 +18,16 @@
     <h2>Veículo: {{ veiculo.min_veiculo }} (Lote: {{ veiculo.lote }})</h2>
     <h2>Leilão: {{ leilao.nome_evento }}</h2>
     <hr style="margin: 20px 0;">
+
     <form method="post">
         {% csrf_token %}
         <div class="form-group">
             <label for="cpf">CPF do Arrematante:</label>
-            <input type="text" name="cpf" id="cpf" placeholder="Digite apenas os números" required>
+            <input type="text" name="cpf" id="cpf" placeholder="Digite o CPF e tecle Tab" required>
         </div>
         <div class="form-group">
-            <label for="nome">Nome do Arrematante:</label>
-            <input type="text" name="nome" id="nome" placeholder="Digite o nome completo" required>
+            <label for="nome">Nome do Arrematante: <span class="spinner">Buscando...</span></label>
+            <input type="text" name="nome" id="nome" readonly required>
         </div>
         <div class="form-group">
             <label for="valor_arremate">Valor Final do Arremate (R$):</label>
@@ -32,5 +35,38 @@
         </div>
         <button type="submit">Confirmar Arremate</button>
     </form>
+    <br>
+    <a href="{% url 'lista_veiculos_leilao' leilao_id=leilao.id %}" class="nav-link">&larr; Cancelar e Voltar</a>
 </div>
+
+<script>
+    // O código JavaScript é exatamente o mesmo da outra página
+    const cpfInput = document.getElementById('cpf');
+    const nomeInput = document.getElementById('nome');
+    const spinner = document.querySelector('.spinner');
+
+    cpfInput.addEventListener('blur', function() {
+        const cpf = cpfInput.value.replace(/\D/g, '');
+        if (cpf.length === 11) {
+            nomeInput.value = '';
+            spinner.style.display = 'inline';
+            fetch(`/api/buscar-cliente/?cpf=${cpf}`)
+                .then(response => response.json())
+                .then(data => {
+                    spinner.style.display = 'none';
+                    if (data.nome) {
+                        nomeInput.value = data.nome;
+                    } else {
+                        alert(data.error || 'Cliente não encontrado.');
+                        cpfInput.focus();
+                    }
+                })
+                .catch(error => {
+                    spinner.style.display = 'none';
+                    alert('Ocorreu um erro de comunicação com o servidor.');
+                    console.error('Erro:', error);
+                });
+        }
+    });
+</script>
 {% endblock %}
