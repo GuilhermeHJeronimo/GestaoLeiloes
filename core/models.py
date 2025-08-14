@@ -1,4 +1,5 @@
 from django.db import models
+from django.utils import timezone
 
 # Modelo para o Vendedor/Dono do Veículo
 class Comitente(models.Model):
@@ -44,7 +45,7 @@ class Leilao(models.Model):
 # Modelo para o Registro de Visita
 class Visita(models.Model):
     leilao = models.ForeignKey(Leilao, on_delete=models.CASCADE, related_name="visitas")
-    cpf_cliente = models.CharField(max_length=14, verbose_name="CPF do Cliente")
+    cpf_cliente = models.CharField(max_length=25, verbose_name="CPF/CNPJ do Cliente")
     nome_cliente = models.CharField(max_length=255, verbose_name="Nome do Cliente", blank=True, null=True)
     data_visita = models.DateTimeField(auto_now_add=True, verbose_name="Data e Hora da Visita")
 
@@ -55,10 +56,10 @@ class Visita(models.Model):
 class Arremate(models.Model):
     veiculo = models.OneToOneField(Veiculo, on_delete=models.CASCADE, related_name="arremate")
     leilao = models.ForeignKey(Leilao, on_delete=models.PROTECT, related_name="arremates")
-    cpf_cliente = models.CharField(max_length=14, verbose_name="CPF do Cliente")
+    cpf_cliente = models.CharField(max_length=25, verbose_name="CPF/CNPJ do Cliente")
     nome_cliente = models.CharField(max_length=255, verbose_name="Nome do Cliente", blank=True, null=True)
     valor_arremate = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Arremate")
-    data_arremate = models.DateTimeField(auto_now_add=True, verbose_name="Data do Arremate")
+    data_arremate = models.DateTimeField(verbose_name="Data do Arremate", default=timezone.now)
 
     def __str__(self):
         return f"Arremate de {self.veiculo.min_veiculo} por {self.nome_cliente}"

@@ -18,19 +18,25 @@
 <div class="table-card">
     <h3>Aguardando Pagamento (Arrematado)</h3>
     <table>
-        <thead><tr><th>Lote</th><th>Veículo</th><th>Placa</th><th>Ação</th></tr></thead>
+        <thead><tr><th>Lote</th><th>Veículo</th><th>Placa</th><th style="width: 300px;">Ações</th></tr></thead>
         <tbody>
             {% for veiculo in aguardando_pagamento %}
             <tr>
                 <td>{{ veiculo.lote }}</td>
                 <td>{{ veiculo.min_veiculo }}</td>
                 <td>{{ veiculo.placa }}</td>
-                <td>
+                <td style="display: flex; gap: 10px;">
                     <form method="post" style="margin: 0;">
                         {% csrf_token %}
                         <input type="hidden" name="veiculo_placa" value="{{ veiculo.placa }}">
                         <input type="hidden" name="novo_status" value="PAGAMENTO_CONFIRMADO">
                         <button type="submit" class="btn btn-success">Confirmar Pagamento</button>
+                    </form>
+                    <form method="post" style="margin: 0;">
+                        {% csrf_token %}
+                        <input type="hidden" name="veiculo_placa" value="{{ veiculo.placa }}">
+                        <input type="hidden" name="acao" value="cancelar">
+                        <button type="submit" class="btn btn-danger">Desistiu / Cancelar</button>
                     </form>
                 </td>
             </tr>

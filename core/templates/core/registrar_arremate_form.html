@@ -1,5 +1,6 @@
 {% extends 'core/base.html' %}
 {% block title %}Registrar Arremate{% endblock %}
+
 {% block content %}
 <style>
     .card { background-color: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); max-width: 600px;}
@@ -7,57 +8,79 @@
     .form-group { margin-bottom: 20px; }
     label { display: block; margin-bottom: 5px; font-weight: bold; }
     input { width: 100%; padding: 10px; font-size: 16px; border-radius: 4px; border: 1px solid #ccc; box-sizing: border-box; }
-    input[name="nome"] { background-color: #e9ecef; }
+    input[name="nome"]:disabled { background-color: #e9ecef; }
     button { padding: 12px 25px; font-size: 16px; background-color: #28a745; color: white; border: none; border-radius: 4px; cursor: pointer;}
     .spinner { display: none; font-weight: normal; color: #6c757d;}
+    .nav-link { color: #0056b3; text-decoration: none; display: inline-block; margin-top: 10px;}
 </style>
+
 <div class="card">
     <h1>Formulário de Arremate</h1>
     <h2>Veículo: {{ veiculo.min_veiculo }} (Lote: {{ veiculo.lote }})</h2>
     <h2>Leilão: {{ leilao.nome_evento }}</h2>
     <hr style="margin: 20px 0;">
-    <form method="post">
-        {% csrf_token %}
-        <div class="form-group">
-            <label for="cpf">CPF do Arrematante:</label>
-            <input type="text" name="cpf" id="cpf" placeholder="Digite o CPF e tecle Tab" required>
-        </div>
-        <div class="form-group">
-            <label for="nome">Nome do Arrematante: <span class="spinner">Buscando...</span></label>
-            <input type="text" name="nome" id="nome" required disabled>
-        </div>
-        <div class="form-group">
-            <label for="valor_arremate">Valor Final do Arremate (R$):</label>
-            <input type="number" name="valor_arremate" id="valor_arremate" step="0.01" placeholder="Ex: 29000.00" required>
-        </div>
-        <button type="submit">Confirmar Arremate</button>
+
+<form method="post">
+    {% csrf_token %}
+    <div class="form-group">
+        <label for="cpf">CPF/CNPJ do Arrematante:</label>
+        <input type="text" name="cpf" id="cpf" placeholder="Digite o documento e tecle Tab" required>
+    </div>
+    <div class="form-group">
+        <label for="nome">Nome do Arrematante: <span class="spinner">Buscando...</span></label>
+        <input type="text" name="nome" id="nome" required disabled>
+    </div>
+    <div class="form-group">
+        <label for="valor_arremate">Valor Final do Arremate (R$):</label>
+        <input type="number" name="valor_arremate" id="valor_arremate" step="0.01" placeholder="Ex: 29000.00" required>
+    </div>
+    <div class="form-group">
+        <label for="data_arremate">Data do Arremate:</label>
+        <input type="datetime-local" name="data_arremate" id="data_arremate" required>
+    </div>
+    <button type="submit">Confirmar Arremate</button>
+</form>
     </form>
+    <br>
+    <a href="{% url 'lista_veiculos_leilao' leilao_id=leilao.id %}" class="nav-link">&larr; Cancelar e Voltar</a>
 </div>
+
 <script>
     const cpfInput = document.getElementById('cpf');
     const nomeInput = document.getElementById('nome');
     const spinner = document.querySelector('.spinner');
+
     cpfInput.addEventListener('blur', function() {
-        const cpf = cpfInput.value.replace(/\D/g, '');
-        if (cpf.length === 11) {
+        const doc = cpfInput.value;
+        const docLimpo = doc.replace(/\D/g, '');
+
+        if (docLimpo.length === 11 || docLimpo.length === 14) {
             nomeInput.value = '';
             spinner.style.display = 'inline';
             nomeInput.disabled = true;
-            fetch(`/api/buscar-cliente/?cpf=${cpf}`)
-                .then(response => response.json())
+
+            fetch(`/api/buscar-cliente/?cpf=${encodeURIComponent(doc)}`)
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw err; });
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     spinner.style.display = 'none';
                     if (data.nome) {
                         nomeInput.value = data.nome;
                         nomeInput.disabled = false;
                     } else {
-                        alert(data.error || 'Cliente não encontrado.');
-                        cpfInput.focus();
+                        alert(data.error || 'Cliente não encontrado. Por favor, digite o nome manualmente.');
+                        nomeInput.disabled = false;
+                        nomeInput.focus();
                     }
                 })
                 .catch(error => {
                     spinner.style.display = 'none';
-                    alert('Ocorreu um erro de comunicação com o servidor.');
+                    alert('Erro de comunicação com a API. Por favor, digite o nome manualmente.');
+                    nomeInput.disabled = false;
                     console.error('Erro:', error);
                 });
         }
