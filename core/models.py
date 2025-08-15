@@ -1,65 +1,69 @@
 from django.db import models
 from django.utils import timezone
 
-# Modelo para o Vendedor/Dono do Veículo
-class Comitente(models.Model):
-    nome = models.CharField(max_length=255, unique=True)
+# Modelo Veiculo agora é um "catálogo" geral de veículos que podem existir.
+class Veiculo(models.Model):
+    placa = models.CharField(max_length=10, unique=True, primary_key=True)
+    min_veiculo = models.CharField(max_length=255, verbose_name="Descrição do Veículo")
+    # Podemos adicionar outros dados fixos do veículo aqui, como ano, modelo, cor, etc.
 
     def __str__(self):
-        return self.nome
+        return f"{self.min_veiculo} ({self.placa})"
 
-class Veiculo(models.Model):
+class Comitente(models.Model):
+    nome = models.CharField(max_length=255, unique=True)
+    def __str__(self): return self.nome
+
+class Leilao(models.Model):
+    nome_evento = models.CharField(max_length=255, verbose_name="Nome do Evento")
+    data_leilao_principal = models.DateField(verbose_name="Data Leilão Principal")
+    # ... (outros campos do leilão)
+
+    def __str__(self): return self.nome_evento
+
+# --- NOVO MODELO CENTRAL: LOTE ---
+class Lote(models.Model):
     STATUS_CHOICES = [
         ('DISPONIVEL', 'Disponível'),
         ('ARREMATADO', 'Arrematado'),
         ('PAGAMENTO_CONFIRMADO', 'Pagamento Confirmado'),
-        ('RETIRADO', 'Retirado'),                  
+        ('RETIRADO', 'Retirado'),
         ('RETORNADO', 'Retornado com Multa'),
     ]
-
-    lote = models.PositiveIntegerField()
-    min_veiculo = models.CharField(max_length=255, verbose_name="Veículo")
-    comitente = models.ForeignKey(Comitente, on_delete=models.PROTECT, related_name='veiculos')
+    
+    leilao = models.ForeignKey(Leilao, on_delete=models.CASCADE, related_name='lotes')
+    veiculo = models.ForeignKey(Veiculo, on_delete=models.CASCADE, related_name='aparicoes_em_lote')
+    comitente = models.ForeignKey(Comitente, on_delete=models.PROTECT, related_name='lotes')
+    
+    numero_lote = models.PositiveIntegerField(verbose_name="Número do Lote")
     lance_inicial = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     proporcao_fipe = models.CharField(max_length=20, verbose_name="Valor FIPE", blank=True)
-    placa = models.CharField(max_length=10, unique=True, primary_key=True)
-    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='DISPONIVEL') # Aumentamos o max_length
-
-    def __str__(self):
-        return f"Lote {self.lote}: {self.min_veiculo} - Placa: {self.placa}"
+    status = models.CharField(max_length=25, choices=STATUS_CHOICES, default='DISPONIVEL')
 
     class Meta:
-        ordering = ['lote']
+        # Garante que um mesmo veículo não possa ter o mesmo número de lote no mesmo leilão.
+        unique_together = ('leilao', 'numero_lote')
+        ordering = ['numero_lote']
 
-# Modelo para o Evento de Leilão
-class Leilao(models.Model):
-    nome_evento = models.CharField(max_length=255, verbose_name="Nome do Evento")
-    data_leilao_principal = models.DateField(verbose_name="Data Leilão Principal")
-    id_leilao_principal = models.CharField(max_length=50, verbose_name="ID Leilão Principal")
-    data_leilao_repasse = models.DateField(verbose_name="Data Leilão Repasse")
-    id_leilao_repasse = models.CharField(max_length=50, verbose_name="ID Leilão Repasse")
-    
     def __str__(self):
-        return self.nome_evento
+        return f"Lote {self.numero_lote} ({self.veiculo.placa}) no Leilão '{self.leilao.nome_evento}'"
 
-# Modelo para o Registro de Visita
+
 class Visita(models.Model):
     leilao = models.ForeignKey(Leilao, on_delete=models.CASCADE, related_name="visitas")
-    cpf_cliente = models.CharField(max_length=25, verbose_name="CPF/CNPJ do Cliente")
+    cpf_cliente = models.CharField(max_length=18, verbose_name="CPF/CNPJ do Cliente")
     nome_cliente = models.CharField(max_length=255, verbose_name="Nome do Cliente", blank=True, null=True)
     data_visita = models.DateTimeField(auto_now_add=True, verbose_name="Data e Hora da Visita")
+    def __str__(self): return f"Visita de {self.cpf_cliente} ao leilão '{self.leilao.nome_evento}'"
 
-    def __str__(self):
-        return f"Visita de {self.cpf_cliente} ao leilão '{self.leilao.nome_evento}'"
-
-# Modelo para o Registro de Arremate
+# --- MODELO ARREMATE ATUALIZADO ---
 class Arremate(models.Model):
-    veiculo = models.OneToOneField(Veiculo, on_delete=models.CASCADE, related_name="arremate")
-    leilao = models.ForeignKey(Leilao, on_delete=models.PROTECT, related_name="arremates")
-    cpf_cliente = models.CharField(max_length=25, verbose_name="CPF/CNPJ do Cliente")
+    # Agora um arremate está ligado a um LOTE específico, não a um VEÍCULO genérico.
+    lote = models.OneToOneField(Lote, on_delete=models.CASCADE, related_name="arremate")
+    cpf_cliente = models.CharField(max_length=18, verbose_name="CPF/CNPJ do Cliente")
     nome_cliente = models.CharField(max_length=255, verbose_name="Nome do Cliente", blank=True, null=True)
     valor_arremate = models.DecimalField(max_digits=10, decimal_places=2, verbose_name="Valor do Arremate")
     data_arremate = models.DateTimeField(verbose_name="Data do Arremate", default=timezone.now)
 
     def __str__(self):
-        return f"Arremate de {self.veiculo.min_veiculo} por {self.nome_cliente}"
+        return f"Arremate do {self.lote} por {self.nome_cliente}"
